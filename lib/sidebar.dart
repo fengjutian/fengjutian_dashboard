@@ -1,24 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 
-// class Application extends StatelessWidget {
-//   const Application({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final colors = context.theme.colors;
-//     // Wrap content in MaterialApp to provide Directionality and other essential contexts
-//     return MaterialApp(
-//       home: ColoredBox(
-//         color: colors.primary,
-//         child: Text(
-//           'Hello World!',
-//           style: TextStyle(color: colors.primaryForeground),
-//         ),
-//       ),
-//     );
-//   }
-// }
+
 
 
 
@@ -34,13 +17,6 @@ Widget _sidebar(BuildContext context) => DecoratedBox(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            // child: SvgPicture.network(
-            //   theme.colors.brightness == Brightness.light
-            //       ? 'https://forui.dev/light_logo.svg'
-            //       : 'https://forui.dev/dark_logo.svg',
-            //   height: 24,
-            //   colorFilter: ColorFilter.mode(context.theme.colors.foreground, BlendMode.srcIn),
-            // ),
           ),
           FDivider(style: context.theme.dividerStyles.horizontalStyle.copyWith(padding: EdgeInsets.zero)),
         ],
