@@ -262,6 +262,204 @@ class _ApplicationState extends State<Application> {
     );
   }
 
+  // 添加新分类的方法
+  void _addNewCategory() {
+    TextEditingController categoryNameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('添加新分类'),
+          content: TextField(
+            controller: categoryNameController,
+            decoration: const InputDecoration(labelText: '分类名称'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                final categoryName = categoryNameController.text.trim();
+                if (categoryName.isNotEmpty) {
+                  setState(() {
+                    // 检查分类是否已存在
+                    if (!categories.any((cat) => cat.name == categoryName)) {
+                      categories.add(WebsiteCategory(
+                        name: categoryName,
+                        websites: [],
+                      ));
+                      // 选中新创建的分类
+                      selectedCategory = categoryName;
+                    }
+                  });
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('添加'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 分类管理页面
+  void _openCategoryManagement() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: 500,
+            height: 400,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '分类管理',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(category.name),
+                          subtitle: Text('${category.websites.length} 个网站'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children:
+                            [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  // 编辑分类
+                                  TextEditingController editController = TextEditingController(text: category.name);
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('编辑分类'),
+                                        content: TextField(
+                                          controller: editController,
+                                          decoration: const InputDecoration(labelText: '新分类名称'),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('取消'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              final newName = editController.text.trim();
+                                              if (newName.isNotEmpty && newName != category.name) {
+                                                setState(() {
+                                                  // 更新分类名称
+                                                  category.name;
+                                                  // 同时更新该分类下所有网站的分类信息
+                                                  for (var website in category.websites) {
+                                                    // 这里需要创建新对象，因为WebsiteData是final的
+                                                    final websiteIndex = category.websites.indexOf(website);
+                                                    if (websiteIndex >= 0) {
+                                                      // 这种方式不工作，因为website对象是不可变的
+                                                      // 需要创建新的WebsiteData对象
+                                                      category.websites[websiteIndex] = WebsiteData(
+                                                        title: website.title,
+                                                        description: website.description,
+                                                        url: website.url,
+                                                        icon: website.icon,
+                                                        category: newName,
+                                                      );
+                                                    }
+                                                  }
+                                                  // 检查当前选中的分类是否是被编辑的分类
+                                                  if (selectedCategory == category.name) {
+                                                    selectedCategory = newName;
+                                                  }
+                                                });
+                                              }
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('保存'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  // 删除分类
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('删除分类'),
+                                        content: Text('确定要删除分类 "${category.name}" 吗？该分类下的所有网站也将被删除。'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('取消'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                categories.removeAt(index);
+                                                // 如果删除的是当前选中的分类，重新选择第一个分类
+                                                if (selectedCategory == category.name) {
+                                                  selectedCategory = categories.isNotEmpty ? categories[0].name : null;
+                                                }
+                                              });
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('删除', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _addNewCategory,
+                  child: const Text('添加新分类'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // 直接使用MaterialApp，移除Forui主题包装器
@@ -278,6 +476,11 @@ class _ApplicationState extends State<Application> {
               icon: const Icon(Icons.add),
               onPressed: _addNewWebsite,
               tooltip: '添加新网站',
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: _openCategoryManagement,
+              tooltip: '分类管理',
             ),
           ],
         ),
