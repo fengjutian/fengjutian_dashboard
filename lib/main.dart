@@ -39,9 +39,9 @@ class Application extends StatelessWidget {
                   mainAxisSpacing: 16,
                   childAspectRatio: 3/4,
                 ),
-                itemCount: 4,
+                itemCount: 8, // 至少6个卡片
                 itemBuilder: (context, index) {
-                  // 示例网站数据
+                  // 示例网站数据 - 包含8个网站
                   final websites = [
                     WebsiteCard(
                       title: 'Flutter 官方网站',
@@ -66,6 +66,30 @@ class Application extends StatelessWidget {
                       description: '全球最大的代码托管平台。',
                       url: 'https://github.com',
                       icon: FIcons.gitBranch,
+                    ),
+                    WebsiteCard(
+                      title: 'Stack Overflow',
+                      description: '程序员问答社区，解决编程难题。',
+                      url: 'https://stackoverflow.com',
+                      icon: FIcons.messageSquare,
+                    ),
+                    WebsiteCard(
+                      title: 'YouTube',
+                      description: '视频分享平台，包含大量教程和演示。',
+                      url: 'https://youtube.com',
+                      icon: FIcons.circleSlash,  // 将不存在的 playCircle 替换为 circleSlash
+                    ),
+                    WebsiteCard(
+                      title: 'Medium',
+                      description: '技术文章和博客分享平台。',
+                      url: 'https://medium.com',
+                      icon: FIcons.bookOpen,
+                    ),
+                    WebsiteCard(
+                      title: 'Twitter',
+                      description: '社交媒体平台，关注技术动态。',
+                      url: 'https://twitter.com',
+                      icon: FIcons.twitter,
                     ),
                   ];
                   return websites[index];
