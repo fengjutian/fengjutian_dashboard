@@ -47,7 +47,7 @@ class WebsiteData {
 
 // 定义分类数据模型
 class WebsiteCategory {
-  final String name;
+  String name; // 将final去掉，改为可变属性
   final List<WebsiteData> websites;
 
   WebsiteCategory({
@@ -372,23 +372,18 @@ class _ApplicationState extends State<Application> {
                                               final newName = editController.text.trim();
                                               if (newName.isNotEmpty && newName != category.name) {
                                                 setState(() {
-                                                  // 更新分类名称
-                                                  category.name;
+                                                  // 修复：直接更新分类名称
+                                                  category.name = newName;
                                                   // 同时更新该分类下所有网站的分类信息
-                                                  for (var website in category.websites) {
-                                                    // 这里需要创建新对象，因为WebsiteData是final的
-                                                    final websiteIndex = category.websites.indexOf(website);
-                                                    if (websiteIndex >= 0) {
-                                                      // 这种方式不工作，因为website对象是不可变的
-                                                      // 需要创建新的WebsiteData对象
-                                                      category.websites[websiteIndex] = WebsiteData(
-                                                        title: website.title,
-                                                        description: website.description,
-                                                        url: website.url,
-                                                        icon: website.icon,
-                                                        category: newName,
-                                                      );
-                                                    }
+                                                  for (int i = 0; i < category.websites.length; i++) {
+                                                    // 由于WebsiteData是不可变的，创建新对象替换
+                                                    category.websites[i] = WebsiteData(
+                                                      title: category.websites[i].title,
+                                                      description: category.websites[i].description,
+                                                      url: category.websites[i].url,
+                                                      icon: category.websites[i].icon,
+                                                      category: newName,
+                                                    );
                                                   }
                                                   // 检查当前选中的分类是否是被编辑的分类
                                                   if (selectedCategory == category.name) {
