@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'website_card.dart';
 import 'dart:convert';
 
@@ -13,12 +12,14 @@ class WebsiteData {
   final String description;
   final String url;
   final IconData icon;
+  final String category; // 分类字段
 
   WebsiteData({
     required this.title,
     required this.description,
     required this.url,
     required this.icon,
+    required this.category,
   });
 
   // 转换为JSON格式
@@ -27,19 +28,32 @@ class WebsiteData {
       'title': title,
       'description': description,
       'url': url,
-      'iconName': icon.fontPackage, // 在实际实现中可能需要更复杂的图标序列化
+      'iconName': icon.codePoint,
+      'category': category,
     };
   }
 
   // 从JSON创建对象
   factory WebsiteData.fromJson(Map<String, dynamic> json, IconData icon) {
     return WebsiteData(
-      title: json['title'],
-      description: json['description'],
-      url: json['url'],
+      title: json['title'] as String,
+      description: json['description'] as String,
+      url: json['url'] as String,
       icon: icon,
+      category: json['category'] as String,
     );
   }
+}
+
+// 定义分类数据模型
+class WebsiteCategory {
+  final String name;
+  final List<WebsiteData> websites;
+
+  WebsiteCategory({
+    required this.name,
+    required this.websites,
+  });
 }
 
 class Application extends StatefulWidget {
@@ -50,73 +64,104 @@ class Application extends StatefulWidget {
 }
 
 class _ApplicationState extends State<Application> {
-  // 使用JSON格式存储网站数据
-  List<WebsiteData> websites = [];
+  // 使用JSON格式存储分类网站数据
+  List<WebsiteCategory> categories = [];
+  String? selectedCategory; // 当前选中的分类
 
   @override
   void initState() {
     super.initState();
-    // 初始化示例数据（JSON格式）
-    final jsonWebsites = [
-      {
-        'title': 'Flutter 官方网站',
-        'description': 'Flutter 是 Google 开发的 UI 工具包，可用于构建跨平台应用。',
-        'url': 'https://flutter.dev',
-        'icon': FIcons.layoutDashboard,
-      },
-      {
-        'title': 'Dart 官方网站',
-        'description': 'Dart 是 Flutter 使用的编程语言。',
-        'url': 'https://dart.dev',
-        'icon': FIcons.code,
-      },
-      {
-        'title': 'Pub Dev',
-        'description': 'Flutter 和 Dart 的包管理器。',
-        'url': 'https://pub.dev',
-        'icon': FIcons.box,
-      },
-      {
-        'title': 'GitHub',
-        'description': '全球最大的代码托管平台。',
-        'url': 'https://github.com',
-        'icon': FIcons.gitBranch,
-      },
-      {
-        'title': 'Stack Overflow',
-        'description': '程序员问答社区，解决编程难题。',
-        'url': 'https://stackoverflow.com',
-        'icon': FIcons.messageSquare,
-      },
-      {
-        'title': 'YouTube',
-        'description': '视频分享平台，包含大量教程和演示。',
-        'url': 'https://youtube.com',
-        'icon': FIcons.circleSlash,
-      },
-      {
-        'title': 'Medium',
-        'description': '技术文章和博客分享平台。',
-        'url': 'https://medium.com',
-        'icon': FIcons.bookOpen,
-      },
-      {
-        'title': 'Twitter',
-        'description': '社交媒体平台，关注技术动态。',
-        'url': 'https://twitter.com',
-        'icon': FIcons.twitter,
-      },
-    ];
+    // 初始化示例数据（按分类组织的JSON格式）
+    // 注意：将FIcons替换为Material Icons
+    final jsonCategories = {
+      '开发工具': [
+        {
+          'title': 'Flutter 官方网站',
+          'description': 'Flutter 是 Google 开发的 UI 工具包，可用于构建跨平台应用。',
+          'url': 'https://flutter.dev',
+          'icon': Icons.dashboard,
+        },
+        {
+          'title': 'Dart 官方网站',
+          'description': 'Dart 是 Flutter 使用的编程语言。',
+          'url': 'https://dart.dev',
+          'icon': Icons.code,
+        },
+        {
+          'title': 'Pub Dev',
+          'description': 'Flutter 和 Dart 的包管理器。',
+          'url': 'https://pub.dev',
+          'icon': Icons.archive,  // 使用更常见的 archive 图标
+        },
+      ],
+      '代码托管': [
+        {
+          'title': 'GitHub',
+          'description': '全球最大的代码托管平台。',
+          'url': 'https://github.com',
+          'icon': Icons.folder_special,  // 使用更常见的 folder_special 图标
+        },
+      ],
+      '学习资源': [
+        {
+          'title': 'Stack Overflow',
+          'description': '程序员问答社区，解决编程难题。',
+          'url': 'https://stackoverflow.com',
+          'icon': Icons.message,
+        },
+        {
+          'title': 'YouTube',
+          'description': '视频分享平台，包含大量教程和演示。',
+          'url': 'https://youtube.com',
+          'icon': Icons.play_circle_outline,
+        },
+        {
+          'title': 'Medium',
+          'description': '技术文章和博客分享平台。',
+          'url': 'https://medium.com',
+          'icon': Icons.article,  // 使用更常见的 article 图标
+        },
+      ],
+      '社交媒体': [
+        {
+          'title': 'Twitter',
+          'description': '社交媒体平台，关注技术动态。',
+          'url': 'https://twitter.com',
+          'icon': Icons.verified_user,
+        },
+      ],
+    };
 
-    // 转换JSON数据为WebsiteData对象
-    websites = jsonWebsites.map((item) {
-      return WebsiteData(
-        title: item['title'] as String,
-        description: item['description'] as String,
-        url: item['url'] as String,
-        icon: item['icon'] as IconData,
+    // 转换JSON数据为分类对象列表
+    categories = jsonCategories.entries.map((entry) {
+      return WebsiteCategory(
+        name: entry.key,
+        websites: entry.value.map((item) {
+          return WebsiteData(
+            title: item['title'] as String,
+            description: item['description'] as String,
+            url: item['url'] as String,
+            icon: item['icon'] as IconData,
+            category: entry.key,
+          );
+        }).toList(),
       );
     }).toList();
+
+    // 默认选中第一个分类
+    if (categories.isNotEmpty) {
+      selectedCategory = categories[0].name;
+    }
+  }
+
+  // 获取当前选中分类的所有网站
+  List<WebsiteData> getCurrentCategoryWebsites() {
+    if (selectedCategory == null) return [];
+    final category = categories.firstWhere(
+      (cat) => cat.name == selectedCategory,
+      orElse: () => WebsiteCategory(name: '', websites: []),
+    );
+    return category.websites;
   }
 
   // 添加新网站的方法
@@ -124,6 +169,14 @@ class _ApplicationState extends State<Application> {
     TextEditingController titleController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
     TextEditingController urlController = TextEditingController();
+    String newCategory = selectedCategory ?? (categories.isNotEmpty ? categories[0].name : '未分类');
+
+    // 如果没有分类，创建一个默认分类
+    if (categories.isEmpty) {
+      categories.add(WebsiteCategory(name: '未分类', websites: []));
+      newCategory = '未分类';
+      selectedCategory = '未分类';
+    }
 
     showDialog(
       context: context,
@@ -145,6 +198,25 @@ class _ApplicationState extends State<Application> {
                 controller: urlController,
                 decoration: const InputDecoration(labelText: '网站URL'),
               ),
+              // 分类选择器
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: DropdownButtonFormField<String>(
+                  value: newCategory,
+                  decoration: const InputDecoration(labelText: '选择分类'),
+                  items: categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category.name,
+                      child: Text(category.name),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      newCategory = value;
+                    }
+                  },
+                ),
+              ),
             ],
           ),
           actions: [
@@ -155,12 +227,30 @@ class _ApplicationState extends State<Application> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  websites.add(WebsiteData(
+                  // 查找或创建分类
+                  final categoryIndex = categories.indexWhere(
+                    (cat) => cat.name == newCategory,
+                  );
+                  
+                  // 创建新网站
+                  final newWebsite = WebsiteData(
                     title: titleController.text,
                     description: descriptionController.text,
                     url: urlController.text,
-                    icon: FIcons.link, // 默认图标
-                  ));
+                    icon: Icons.link, // 默认图标
+                    category: newCategory,
+                  );
+                  
+                  // 添加到对应分类
+                  if (categoryIndex >= 0) {
+                    categories[categoryIndex].websites.add(newWebsite);
+                  } else {
+                    // 如果分类不存在，创建新分类
+                    categories.add(WebsiteCategory(
+                      name: newCategory,
+                      websites: [newWebsite],
+                    ));
+                  }
                 });
                 Navigator.pop(context);
               },
@@ -174,56 +264,83 @@ class _ApplicationState extends State<Application> {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 MaterialApp 并设置 Forui 主题
+    // 直接使用MaterialApp，移除Forui主题包装器
     return MaterialApp(
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      home: FTheme(
-        data: FThemeData(
-          // 直接使用 FThemes.zinc.light 的数据属性
-          colors: FThemes.zinc.light.colors,
-          style: FThemes.zinc.light.style,
-          typography: FThemes.zinc.light.typography,
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('网站导航'),
+          backgroundColor: Theme.of(context).primaryColor,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _addNewWebsite,
+              tooltip: '添加新网站',
+            ),
+          ],
         ),
-        child: Builder(builder: (context) {
-          final colors = context.theme.colors;
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('网站导航'),
-              backgroundColor: colors.primary,
-              foregroundColor: colors.primaryForeground,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addNewWebsite,
-                  tooltip: '添加新网站',
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 分类选择器 - 将FButton替换为Material Button
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: categories.map((category) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedCategory = category.name;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selectedCategory == category.name
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey[200],
+                            foregroundColor: selectedCategory == category.name
+                                ? Colors.white
+                                : Theme.of(context).primaryColor,
+                          ),
+                          child: Text(category.name),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ],
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,  // 每行4个卡片
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 4/5,  // 调整宽高比
-                ),
-                itemCount: websites.length,
-                itemBuilder: (context, index) {
-                  // 从JSON数据创建WebsiteCard
-                  final website = websites[index];
-                  return WebsiteCard(
-                    title: website.title,
-                    description: website.description,
-                    url: website.url,
-                    icon: website.icon,
-                  );
-                },
               ),
-            ),
-          );
-        }),
+              // 网站卡片网格
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,  // 每行4个卡片
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 4/5,  // 调整宽高比
+                  ),
+                  itemCount: getCurrentCategoryWebsites().length,
+                  itemBuilder: (context, index) {
+                    // 从当前分类获取网站数据
+                    final website = getCurrentCategoryWebsites()[index];
+                    return WebsiteCard(
+                      title: website.title,
+                      description: website.description,
+                      url: website.url,
+                      icon: website.icon,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

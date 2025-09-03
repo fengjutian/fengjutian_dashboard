@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WebsiteCard extends StatelessWidget {
@@ -25,54 +24,64 @@ class WebsiteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 Builder 确保能正确获取主题
-    return Builder(builder: (context) {
-      final colors = context.theme.colors;
-      final typography = context.theme.typography;
-
-      return GestureDetector(
-        onTap: _launchUrl,
-        child: FCard.raw(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(icon, color: colors.primary),
+    // 使用Material Card代替FCard
+    return GestureDetector(
+      onTap: _launchUrl,
+      child: Card(
+        elevation: 4,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
+                    child: Icon(icon, color: Theme.of(context).primaryColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
                       title,
-                      style: typography.sm.copyWith(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: colors.foreground,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 16,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 14,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: typography.xs.copyWith(color: colors.mutedForeground),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _launchUrl,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).primaryColor,
                 ),
-                const SizedBox(height: 12),
-                FButton(
-                  child: const Text('访问网站'),
-                  onPress: _launchUrl,
-                ),
-              ],
-            ),
+                child: const Text('访问网站'),
+              ),
+            ],
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 }
