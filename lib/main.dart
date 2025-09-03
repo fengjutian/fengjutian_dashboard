@@ -34,10 +34,10 @@ class Application extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                  crossAxisCount: 4,  // 将每行卡片数量从2个改为4个
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 3/4,
+                  childAspectRatio: 4/5,  // 调整宽高比以适应更多卡片
                 ),
                 itemCount: 8, // 至少6个卡片
                 itemBuilder: (context, index) {
